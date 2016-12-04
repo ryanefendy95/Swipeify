@@ -1,0 +1,67 @@
+<ion-view view-title="Discover" class="discover-page">
+  <!-- *************************
+        TD Cards
+        - We start off with an ng-if so that the cards are not generated
+          unless $scope.cards is not 'null'
+      ************************* -->
+  <div ng-if="cards.active">
+    <td-cards>
+      <td-card ng-repeat="card in cards.active" on-destroy="cardDestroyed($index)" on-swipe-left="cardSwipedLeft($index)" on-swipe-right="cardSwipedRight($index)">
+        <div class="image" ng-controller="CardCtrl">
+          <div class="no-text"><i class="icon ion-thumbsdown icon-large"></i></div>
+          <div class="yes-text"><i class="icon ion-thumbsup icon-large"></i></div>
+          <img ng-src="{{ card.image_large }}">
+          <div class="item">
+            <h2>{{ card.title }} <span ng-hide="card.loaded"><i class="ion-loading-c"></i></span></h2>
+            <p>{{ card.artist }}</p>
+          </div>
+        </div>
+      </td-card>
+      <!-- *************************
+        End Card
+        - 'drag' is set to false. The user cannot drag it.
+        - 'refreshCards()' reloads all cards that have NOT been discarded.
+      ************************* -->
+      <td-card id="end-card" drag="false">
+        <i class="icon ion-ios-refresh disable-user-behavior" ng-click="refreshCards()"></i>
+      </td-card>
+    </td-cards>
+  </div>
+</ion-view>
+
+<!--<ion-view view-title="Discover" class="discover-page">-->
+  <!--<ion-content scroll="false">-->
+
+    <!--<div class="list card current-song"-->
+         <!--ng-class="{skipped: currentSong.rated == false,-->
+                     <!--favorited: currentSong.rated == true}"-->
+         <!--ng-show="currentSong && !currentSong.hide">-->
+
+      <!--<div class="item item-image">-->
+        <!--<img ng-src="{{ currentSong.image_large }}">-->
+      <!--</div>-->
+
+      <!--<div class="img-lookahead">-->
+        <!--<img ng-src="{{ nextAlbumImg() }}" />-->
+      <!--</div>-->
+
+      <!--<div class="item">-->
+        <!--<h2>{{ currentSong.title }} <span ng-hide="currentSong.loaded"><i class="ion-loading-c"></i></span></h2>-->
+        <!--<p>{{ currentSong.artist }}</p>-->
+      <!--</div>-->
+
+      <!--<div class="item tabs tabs-secondary tabs-icon-left dark">-->
+        <!--<a class="tab-item " ng-click="sendFeedback(false)">-->
+          <!--<i class="icon ion-close dark"></i>-->
+          <!--Skip-->
+        <!--</a>-->
+        <!--<a class="tab-item" ng-click="sendFeedback(true)">-->
+          <!--<i class="icon ion-heart dark"></i>-->
+          <!--Favorite-->
+        <!--</a>-->
+      <!--</div>-->
+
+    <!--</div>-->
+
+  <!--</ion-content>-->
+<!--</ion-view>-->

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html ng-app="myApp">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title></title>
+
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular.js"></script>
+    <script src="dist/collide.js"></script>
+    <script src="https://hammerjs.github.io/dist/hammer.js"></script>
+    <style>
+      .box {
+        position: absolute;
+        width: 120px;
+        height: 120px;
+        background-color: black;
+      }
+      #draggable {
+        top: 200px;
+      }
+      #opts {
+        position: absolute;
+        top: 200px;
+        left: 10px;
+      }
+      .box-container {
+        width: 520px;
+        height: 120px;
+        border: 1px solid red;
+        background: #EEE;
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    <div ng-controller="MyCtrl">
+      <div class="box-container">
+        <div id="box" class="box"></div>
+      </div>
+      <!-- <div class="box" id="draggable"></div> -->
+      <div id="opts">
+        <label>
+          Duration:
+          <input type="number" ng-model="anim.duration">
+        </label>
+        <label>
+          Repeat
+          <input type="number" ng-model="anim.repeat">
+        </label>
+        <br>
+        <label>
+          Delay
+          <input type="number" ng-model="anim.delay">
+        </label>
+        <br>
+        <br>
+        <label>
+          Invert
+          <input type="checkbox" ng-model="$inverted" ng-change="anim.invert($inverted)">
+        </label>
+        <br>
+        <button ng-click="do(v)" ng-repeat="v in fns">{{v}}</button>
+        <button ng-click="do('spring')">Spring</button>
+        <button ng-click="do('gravity')">Gravity</button>
+        <p>
+        <input type="text" ng-model="anim.bx1">
+        <input type="text" ng-model="anim.by1">
+        <input type="text" ng-model="anim.bx2">
+        <input type="text" ng-model="anim.by2">
+        <button ng-click="do('cubic-bezier')">cubic-bezier</button>
+        </p>
+        <p>
+          <button ng-click="toggle()">Toggle Pause/Play</button>
+          <button ng-click="currentAnimation.percent(0.3)">Go to 30%</button>
+        </p>
+      </div>
+      {{animationResult}}
+    </div>
+
+    <script>
+      angular.module('myApp', [])
+      .controller('MyCtrl', function($scope) {
+
+        $scope.fns = [
+          'linear',
+          'ease',
+          'ease-in',
+          'ease-out',
+          'ease-in-out'
+        ];
+        $scope.anim = {
+          duration: 1000,
+          bx1: 0.17,
+          by1: 0.67,
+          bx2: 0.83,
+          by2: 0.67,
+          direction: 'normal'
+        };
+
+        $scope.toggle = function() {
+          if (!$scope.currentAnimation) return;
+          if ($scope.currentAnimation.isRunning()) {
+            $scope.currentAnimation.stop();
+          } else {
+            $scope.currentAnimation.start();
+          }
+        };
+        var el = angular.element(document.querySelector('.box'));
+        $scope.do = function(fn, noRun) {
+          if(fn == 'cubic-bezier') {
+            fn = 'cubic-bezier(' +
+                $scope.anim.bx1 + ',' +
+                $scope.anim.by1 + ',' +
+                $scope.anim.bx2 + ',' +
+                $scope.anim.by2 + ')';
+          }
+          var config = angular.extend({
+            name: 'fadeIn',
+            duration: 1500,
+            delay: 500,
+            repeat: 0,
+            easing: fn,
+          }, $scope.anim);
+
+          if(fn == 'spring') {
+            angular.extend(config, {
+              easing: {
+                type: 'spring',
+                frequency: 15,
+                friction: 200,
+                initialForce: false
+              }
+            });
+          } else if (fn == 'gravity') {
+            angular.extend(config, {
+              easing: {
+                type: 'gravity',
+                frequency: 15,
+                friction: 200,
+                initialForce: false
+              }
+            });
+          }
+
+          $scope.currentAnimation = collide.animation(config);
+          window.anim = $scope.currentAnimation
+            .on('step', function(v) {
+              el[0].style.webkitTransform = 'translate3d('+ (v * 400) + 'px, 0,0)';
+            })
+            .on('stop', console.log.bind(console, 'onStop. didFinish?'))
+            .on('start', console.log.bind(console, 'onStart'));
+          if (!noRun) {
+            window.anim.start();
+          }
+        }
+        $scope.do('linear', true);
+      });
+
+      var releaseEasing = {
+        type: 'gravity',
+        frequency: 15,
+        friction: 200,
+        initialForce: false
+      };
+      var mc;
+      mc = new Hammer(document.getElementById('box'));
+      var width = 400;
+      var drag;
+      mc.on('panleft panright', function(e) {
+        if (!drag) {
+          drag = {};
+          drag.startPercent = window.anim.percent() || 0;
+          drag.startX = e.center.x;
+          anim.easing('linear');
+        }
+        drag.direction = e.center.x < drag.startX ? -1 : 1;
+        window.anim.percent(
+          drag.startPercent + (e.distance / width * drag.direction), true
+        );
+      });
+      mc.on('panend', function(e) {
+          console.log('velocity', e.velocityX.toFixed(3));
+        window.anim
+          .transitionEasingTo(releaseEasing, true)
+          .velocity(-e.velocityX *2);
+        drag = null;
+      });
+    </script>
+  </body>
+</html>
